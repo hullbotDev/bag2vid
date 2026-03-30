@@ -6,6 +6,7 @@
 
 #include <QPainter>
 #include <QMouseEvent>
+#include <QShortcut>
 #include <QFileDialog>
 #include <QThread>
 #include <QMessageBox>
@@ -79,6 +80,29 @@ namespace bag2vid
 
         connect(timeline_widget_, &TimelineWidget::currentTimeChanged, [this](double time)
                 { video_player_->seekToTime(time); });
+
+        // Keyboard shortcuts — use QShortcut with WidgetWithChildrenShortcut
+        // context so they fire regardless of which child widget has focus.
+        auto *shortcut_space = new QShortcut(Qt::Key_Space, this);
+        shortcut_space->setContext(Qt::WidgetWithChildrenShortcut);
+        connect(shortcut_space, &QShortcut::activated, [this]()
+                {
+            if (!is_extracting_)
+                togglePlayPause(); });
+
+        auto *shortcut_left = new QShortcut(Qt::Key_Left, this);
+        shortcut_left->setContext(Qt::WidgetWithChildrenShortcut);
+        connect(shortcut_left, &QShortcut::activated, [this]()
+                {
+            if (!is_extracting_)
+                video_player_->seekBackward(); });
+
+        auto *shortcut_right = new QShortcut(Qt::Key_Right, this);
+        shortcut_right->setContext(Qt::WidgetWithChildrenShortcut);
+        connect(shortcut_right, &QShortcut::activated, [this]()
+                {
+            if (!is_extracting_)
+                video_player_->seekForward(); });
     }
 
     void Visualiser::setupUI()
@@ -153,27 +177,6 @@ namespace bag2vid
         {
             extractor_->cancelExtraction();
             extraction_watcher_.waitForFinished();
-        }
-    }
-
-    void Visualiser::keyPressEvent(QKeyEvent *event)
-    {
-        // Block playback/seek shortcuts during extraction to avoid
-        // concurrent rosbag reads (Bag file handle is not thread-safe).
-        if (is_extracting_)
-            return;
-
-        if (event->key() == Qt::Key_Space)
-        {
-            togglePlayPause();
-        }
-        else if (event->key() == Qt::Key_Left)
-        {
-            video_player_->seekBackward();
-        }
-        else if (event->key() == Qt::Key_Right)
-        {
-            video_player_->seekForward();
         }
     }
 

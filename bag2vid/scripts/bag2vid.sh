@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-BAG2VID_IMAGE="stathiw/bag2vid:latest"
+BAG2VID_IMAGE="hullbot/bag2vid:melodic"
 CONTAINER_NAME="bag2vid"
 BAG2VID_SRC="/home/${USER}/Hullbot_bag_files"  # Replace with the path to your ROS bags
 DISPLAY_VAR=${DISPLAY}

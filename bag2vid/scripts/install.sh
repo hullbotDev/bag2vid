@@ -2,7 +2,7 @@
 #
 
 # Variables
-BAG2VID_IMAGE="stathiw/bag2vid:latest"
+BAG2VID_IMAGE="hullbot/bag2vid:melodic"
 BAG2VID_SRC="/home/${USER}/Hullbot_bag_files"  # Replace with the path to your ROS bags
 
 # Add bag2vid script to bashrc
