@@ -3,7 +3,7 @@
  * @author Stathi Weir (stathi.weir@gmail.com)
  * @brief
  * @version 0.1
- * @date 2024-06-09 
+ * @date 2024-06-09
  */
 
 #pragma once
@@ -14,15 +14,15 @@
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/Image.h>
 
-namespace bag2vid 
+namespace bag2vid
 {
-class Camera
-{
+  class Camera
+  {
   public:
     inline Camera(const std::string &name, const std::string &topic,
                   const std::string &image_type)
         : name_(name), topic_(topic), image_type_(image_type) {}
-    ~Camera();
+    ~Camera() = default;
 
     /**
      * @brief Add messages to the camera
@@ -59,7 +59,8 @@ class Camera
      * @brief Get the messages of the camera
      */
     inline std::vector<std::shared_ptr<rosbag::MessageInstance>>
-    getMessages() const {
+    getMessages() const
+    {
       return messages_;
     }
 
@@ -72,6 +73,6 @@ class Camera
     ros::Time end_time_;
 
     std::vector<std::shared_ptr<rosbag::MessageInstance>> messages_;
-};
+  };
 
 } // namespace bag2vid

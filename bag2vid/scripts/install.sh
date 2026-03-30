@@ -23,7 +23,7 @@ echo "BAG2VID_SRC=${BAG2VID_SRC}" >> ~/.bashrc
 echo "bag2vid() {" >> ~/.bashrc
 echo "    docker run -it --rm \\" >> ~/.bashrc
 echo "    --name bag2vid \\" >> ~/.bashrc
-echo "    --env DISPLAY=${DISPLAY} \\" >> ~/.bashrc
+echo "    --env DISPLAY=\${DISPLAY} \\" >> ~/.bashrc
 echo "    --volume /tmp/.X11-unix:/tmp/.X11-unix \\" >> ~/.bashrc
 echo "    --volume \${BAG2VID_SRC}:/home/user/rosbags \\" >> ~/.bashrc
 echo "    --network host \\" >> ~/.bashrc

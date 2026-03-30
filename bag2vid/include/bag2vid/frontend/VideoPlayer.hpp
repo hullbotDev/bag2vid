@@ -1,5 +1,4 @@
 
-
 #pragma once
 
 #include <ros/ros.h>
@@ -7,121 +6,69 @@
 #include <sensor_msgs/Image.h>
 #include <rosbag/bag.h>
 
+#include "bag2vid/backend/H264Decoder.hpp"
+
 #include <QImage>
 #include <QObject>
 #include <QTimer>
 
-class VideoPlayer : public QObject
+#include <memory>
+
+namespace bag2vid
 {
-    Q_OBJECT
 
-public:
-    /**
-     * @brief Construct a new VideoPlayer object.
-     * 
-     * @param parent 
-     */
-    explicit VideoPlayer(QObject *parent = nullptr);
+    class VideoPlayer : public QObject
+    {
+        Q_OBJECT
 
-    /**
-     * @brief Destroy the VideoPlayer object.
-     * 
-     */
-    ~VideoPlayer();
+    public:
+        explicit VideoPlayer(QObject *parent = nullptr);
+        ~VideoPlayer();
 
-    /**
-     * @brief Get the current frame id.
-     * 
-     * @return int
-     */
-    int getCurrentFrameId() const { return current_frame_; }
+        int getCurrentFrameId() const { return current_frame_; }
 
-public slots:
-    /**
-     * @brief Move the video player to the specified time (in seconds).
-     * First frame of the rosbag is at time 0.
-     * 
-     * @param time
-     */
-    void seekToTime(double time);
+    public slots:
+        void seekToTime(double time);
+        void play();
+        void pause();
+        void loadMessages(const std::vector<std::shared_ptr<rosbag::MessageInstance>> &messages);
+        void seekBackward();
+        void seekForward();
 
-    /**
-     * @brief Start playing the video.
-     */
-    void play();
+    signals:
+        void newFrame(const QImage &frame);
+        void currentTimestamp(double time);
+        void finishedPlaying();
+        /// Emitted when h264 decoder is waiting for a keyframe after seek/start
+        void waitingForKeyframe(bool waiting);
 
-    /**
-     * @brief Pause the video.
-     */
-    void pause();
+    private slots:
+        void playback();
 
-    /**
-     * @brief Load messages from a rosbag.
-     * 
-     * @param messages Vector of shared pointers to rosbag message instances.
-     */
-    void loadMessages(std::vector<std::shared_ptr<rosbag::MessageInstance> > messages);
+    private:
+        bool is_playing_;
+        int current_frame_;
+        double start_time_;
+        double end_time_;
+        double fps_ = 30.0;
+        QTimer playback_timer_;
+        std::vector<std::shared_ptr<rosbag::MessageInstance>> messages_;
 
-    /**
-     * @brief Move the video player to the previous frame.
-     */
-    void seekBackward();
+        void processImageMessage(const sensor_msgs::Image::ConstPtr &msg);
+        void processCompressedImageMessage(const sensor_msgs::CompressedImage::ConstPtr &msg);
 
-    /**
-     * @brief Move the video player to the next frame.
-     */
-    void seekForward();
+        /// H.264 decoder — created lazily on first h264 message
+        std::unique_ptr<bag2vid::H264Decoder> h264_decoder_;
 
-signals:
-    /**
-     * @brief Signal emitted when a new frame is available.
-     * 
-     * @param frame
-     */
-    void newFrame(const QImage &frame);
+        /// True when the h264 decoder has been reset and hasn't yet produced a
+        /// clean frame (waiting for an IDR/keyframe).
+        bool h264_awaiting_keyframe_ = false;
 
-    /**
-     * @brief Set the timestamp of the current frame.
-     * 
-     * @param time 
-     * @return * void 
-     */
-    void currentTimestamp(double time);
+        /// Checks if the current topic contains h264 messages
+        bool isCurrentTopicH264() const;
 
-    /**
-     * @brief Signal emitted when the video has finished playing.
-     * 
-     */
-    void finishedPlaying();
+        /// Resets the h264 decoder and enters the "waiting for keyframe" state
+        void resetH264Decoder();
+    };
 
-private slots:
-    void playback();
-
-private:
-    //  Flag to indicate if the video is playing
-    bool is_playing_;
-    //  Current frame iterator
-    int current_frame_;
-    // Time of start-point marker of video extraction
-    double start_time_;
-    // Time of end-point marker of video extraction
-    double end_time_;
-    // Timer for playback
-    QTimer playback_timer_;
-    // Vector of shared pointers to rosbag message instances
-    std::vector<std::shared_ptr<rosbag::MessageInstance> > messages_;
-
-    /**
-     * @brief Process ROS Image message.
-     * 
-     * @param msg std::shared_ptr to the Image message.
-     */
-    void processImageMessage(const sensor_msgs::Image::ConstPtr &msg);
-
-    /**
-     * @brief Process ROS CompressedImage message.
-     * 
-     * @param msg std::shared_ptr to the CompressedImage message.
-     */
-    void processCompressedImageMessage(const sensor_msgs::CompressedImage::ConstPtr &msg);
-};
+} // namespace bag2vid

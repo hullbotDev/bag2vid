@@ -6,14 +6,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        ROSBAG_SRC_FOLDER: ${BAG2VID_SRC}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ${BAG2VID_SRC}:/home/user/rosbags
-    command: /bin/bash
     environment:
       - DISPLAY=${DISPLAY}
     network_mode: host
     tty: true
-    privileged: true
